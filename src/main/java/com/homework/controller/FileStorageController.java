@@ -96,12 +96,10 @@ public class FileStorageController {
                                                       @RequestParam(value = "page", defaultValue = "0") Integer page) {
 
         JSONObject response = new JSONObject();
-        JSONArray pageFiles = new JSONArray();
 
-        pageFiles.addAll(fileStorageService.getAll(tags, size, page));
-        response.put("total", fileStorageService.getCount());
-        response.put("page", pageFiles);
+        // response.put("total", fileStorageService.getCount());
+        response.put("page", fileStorageService.getAll(tags, size, page));
 
-        return new ResponseEntity<>(response.toString(), HttpStatus.OK);
+        return new ResponseEntity<>(response.toJSONString(), HttpStatus.OK);
     }
 }

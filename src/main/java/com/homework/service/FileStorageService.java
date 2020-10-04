@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class FileStorageService {
@@ -65,9 +66,8 @@ public class FileStorageService {
                 .collect(Collectors.toList());
     }
 
-    public Integer getCount() {
-        List<File> files = new ArrayList<>();
-        repository.findAll().forEach(files::add);
-        return files.size();
+    public long getCount() {
+        var files = repository.findAll();
+        return StreamSupport.stream(files.spliterator(), false).count();
     }
 }

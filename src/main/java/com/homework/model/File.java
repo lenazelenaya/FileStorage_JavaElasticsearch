@@ -15,6 +15,6 @@ public class File {
     @Id
     private String id;
     private String name;
-    private byte[] size;
+    private Integer size;
     private List<String> tags;
 }

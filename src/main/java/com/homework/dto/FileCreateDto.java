@@ -14,6 +14,6 @@ import java.util.List;
 @JsonDeserialize(using = Deserializer.class)
 public class FileCreateDto {
     String name;
-    byte[] size;
+    Integer size;
     List<String> tags;
 }

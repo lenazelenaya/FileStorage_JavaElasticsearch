@@ -21,7 +21,7 @@ public class FileDto {
         return FileDto.builder()
                 .id(file.getId())
                 .name(file.getName())
-                .size(ByteBuffer.wrap(file.getSize()).getInt())
+                .size(file.getSize())
                 .tags(file.getTags())
                 .build();
     }

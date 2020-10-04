@@ -37,7 +37,7 @@ public class Deserializer extends StdDeserializer<FileCreateDto> {
         }
 
         String name = node.get("name").toString();
-        byte[] size = node.get("size").asText().getBytes();
+        Integer size = node.get("size").asInt();
         List<String> tags = getTags(node);
 
         return new FileCreateDto(name, size, tags);

@@ -97,7 +97,7 @@ public class FileStorageController {
 
         JSONObject response = new JSONObject();
 
-        // response.put("total", fileStorageService.getCount());
+        response.put("total", fileStorageService.getCount());
         response.put("page", fileStorageService.getAll(tags, size, page));
 
         return new ResponseEntity<>(response.toJSONString(), HttpStatus.OK);

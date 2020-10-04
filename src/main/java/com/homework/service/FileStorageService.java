@@ -5,16 +5,18 @@ import com.homework.dto.FileCreateDto;
 import com.homework.dto.FileDto;
 import com.homework.model.File;
 import com.homework.repository.FileStorageRepo;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 @Service
 public class FileStorageService {
@@ -60,14 +62,21 @@ public class FileStorageService {
                     .stream()
                     .map(FileDto::fromEntity)
                     .collect(Collectors.toList());
-        }else return repository.findByTags(tags, pageable)
-                .stream()
-                .map(FileDto::fromEntity)
-                .collect(Collectors.toList());
+        }else return this.findByTags(tags, pageable);
     }
 
     public long getCount() {
         var files = repository.findAll();
         return StreamSupport.stream(files.spliterator(), false).count();
+    }
+
+    private List<FileDto> findByTags(List<String> tags, Pageable pageable){
+//        return repository.findByTags(tags, pageable)
+//                .stream()
+//                .map(FileDto::fromEntity)
+//                .collect(Collectors.toList());
+        String query = String.join(" ", tags);
+        Page<File> files = repository.search(queryStringQuery(query), pageable);
+        return files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
     }
 }

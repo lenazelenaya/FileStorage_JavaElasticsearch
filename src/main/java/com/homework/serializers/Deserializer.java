@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.homework.Exceptions.IncorrectValueException;
-import com.homework.Exceptions.NotPresentSizeOrNameException;
+import com.homework.exceptions.IncorrectValueException;
+import com.homework.exceptions.NotPresentSizeOrNameException;
 import com.homework.dto.FileCreateDto;
 
 import java.io.IOException;
@@ -28,7 +28,10 @@ public class Deserializer extends StdDeserializer<FileCreateDto> {
 
         JsonNode node = jsonParser.getCodec().readTree(jsonParser);
 
-        if (!node.hasNonNull("name") || !node.hasNonNull("size")) {
+        if (!node.hasNonNull("name") ||
+                !node.hasNonNull("size") ||
+                node.get("name").toString().equals("") ||
+                node.get("size").toString().equals("")) {
             throw new NotPresentSizeOrNameException("Does not allow empty name or size");
         }
 
@@ -36,7 +39,7 @@ public class Deserializer extends StdDeserializer<FileCreateDto> {
             throw new IncorrectValueException("Size can not be negative");
         }
 
-        String name = node.get("name").toString();
+        String name = node.get("name").asText();
         Integer size = node.get("size").asInt();
         List<String> tags = getTags(node);
 

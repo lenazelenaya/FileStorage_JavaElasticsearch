@@ -111,12 +111,13 @@ public class FileStorageController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getAll(@RequestParam(value = "tags", required = false) List<String> tags,
                                                       @RequestParam(value = "size", defaultValue = "10") Integer size,
-                                                      @RequestParam(value = "page", defaultValue = "0") Integer page) {
+                                                      @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                         @RequestParam(value = "q", required = false) String query) {
 
         JSONObject response = new JSONObject();
 
         response.put("total", fileStorageService.getCount());
-        response.put("page", fileStorageService.getAll(tags, size, page));
+        response.put("page", fileStorageService.getAll(tags, size, page, query));
 
         return new ResponseEntity<>(response.toJSONString(), HttpStatus.OK);
     }

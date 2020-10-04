@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
 
 import org.springframework.stereotype.Service;
@@ -67,15 +68,21 @@ public class FileStorageService {
         repository.save(file);
     }
 
-    public List<FileDto> getAll(List<String> tags, Integer size, Integer page) {
+    public List<FileDto> getAll(List<String> tags, Integer size, Integer page, String query) {
         Pageable pageable = PageRequest.of(page, size);
-        if (tags == null) {
+        if (tags == null && query == null) {
             return repository.findAll(pageable)
                     .getContent()
                     .stream()
                     .map(FileDto::fromEntity)
                     .collect(Collectors.toList());
-        } else return this.findByTags(tags, pageable);
+        } else if(query == null)
+            return this.findByTags(tags, pageable);
+        else if(tags == null){
+            return this.findByQuery(query, pageable);
+        }else{
+            return this.findByQueryAndTags(tags, query, pageable);
+        }
     }
 
     public long getCount() {
@@ -85,7 +92,18 @@ public class FileStorageService {
 
     private List<FileDto> findByTags(List<String> tags, Pageable pageable) {
         String query = String.join(" ", tags);
-        Page<File> files = repository.search(queryStringQuery(query), pageable);
+        Page<File> files = repository.findAllByTagsIn(tags, pageable);
+        return files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
+    }
+
+    private List<FileDto> findByQuery(String query, Pageable pageable) {
+        Page<File> files = repository.findAllByNameContains(query, pageable);
+        return files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
+    }
+
+    private List<FileDto> findByQueryAndTags(List<String> tags, String query, Pageable pageable) {
+        String tagsString = String.join(" ", tags);
+        Page<File> files = repository.findAllByNameContainsAndTagsIn(query, tags, pageable);
         return files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
     }
 
@@ -102,9 +120,6 @@ public class FileStorageService {
 
     private FileType getFileType(String fileName){
         String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
- // !!!
-        System.out.println(fileName);
-        System.out.println(Arrays.stream(DocType.values()).anyMatch(type -> type.toString().equals(extension.toUpperCase())));
 
         if (Arrays.stream(AudioType.values())
                 .anyMatch(type -> type.toString().equals(extension.toUpperCase())))
@@ -122,6 +137,7 @@ public class FileStorageService {
                 .anyMatch(type -> type.toString().equals(extension.toUpperCase())))
             return ImageType.valueOf(extension.toUpperCase());
 
+        // If there is no extension in enums, there would not be any file type
         return null;
     }
 }

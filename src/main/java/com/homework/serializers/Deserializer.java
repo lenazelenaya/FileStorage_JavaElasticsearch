@@ -15,6 +15,10 @@ import java.util.List;
 
 public class Deserializer extends StdDeserializer<FileCreateDto> {
 
+    public Deserializer() {
+        this(null);
+    }
+
     public Deserializer(Class<?> vc) {
         super(vc);
     }

@@ -2,6 +2,7 @@ package com.homework.service;
 
 import com.homework.Exceptions.NotFoundException;
 import com.homework.dto.FileCreateDto;
+import com.homework.dto.FileDto;
 import com.homework.model.File;
 import com.homework.repository.FileStorageRepo;
 import org.springframework.data.domain.PageRequest;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class FileStorageService {
@@ -49,13 +51,18 @@ public class FileStorageService {
         repository.save(file);
     }
 
-    public List<File> getAll(List<String> tags, Integer size, Integer page) {
+    public List<FileDto> getAll(List<String> tags, Integer size, Integer page) {
         Pageable pageable = PageRequest.of(page,size);
-        List<File> files;
         if(tags == null) {
-            files = repository.findAll(pageable).getContent();
-        }else files = repository.findByTags(tags, pageable);
-        return files;
+            return repository.findAll(pageable)
+                    .getContent()
+                    .stream()
+                    .map(FileDto::fromEntity)
+                    .collect(Collectors.toList());
+        }else return repository.findByTags(tags, pageable)
+                .stream()
+                .map(FileDto::fromEntity)
+                .collect(Collectors.toList());
     }
 
     public Integer getCount() {

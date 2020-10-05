@@ -132,9 +132,9 @@ public class FileStorageController {
             notes = "You can get all files by query or by tags. Also, you can provide pagination with size and page values")
     public ResponseEntity<String> getAll(@ApiParam(value = "Tags to search files by them")
                                              @RequestParam(value = "tags", required = false) List<String> tags,
-                                         @ApiParam(value = "Size of the page", defaultValue = "10")
+                                         @ApiParam(value = "Size of the page. Default value = 10")
                                          @RequestParam(value = "size", defaultValue = "10") Integer size,
-                                         @ApiParam(value = "The 0-based parameter for paging", defaultValue = "0")
+                                         @ApiParam(value = "The 0-based parameter for paging. Default value = 0")
                                          @RequestParam(value = "page", defaultValue = "0") Integer page,
                                          @ApiParam(value = "Query to find files that contains it in the name")
                                          @RequestParam(value = "q", required = false) String query) {

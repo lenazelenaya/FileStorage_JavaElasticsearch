@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  kibana:
+    container_name: 'kibana'
+    image: kibana:7.6.2
+    links:
+      - elastic-search
+    ports:
+      - 5601:5601
+    networks:
+      - elastic
+  elastic-search:
+    container_name: elasticsearch
+    image: elasticsearch:7.6.2
+    ports:
+      - 9200:9200
+    networks:
+      - elastic

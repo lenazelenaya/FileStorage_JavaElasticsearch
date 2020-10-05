@@ -7,6 +7,7 @@ import org.springframework.data.elasticsearch.annotations.Query;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 
@@ -14,7 +15,7 @@ import java.util.List;
 public interface FileStorageRepo extends ElasticsearchRepository<File, String> {
     Page<File> findAllByNameContains(String query, Pageable pageable);
 
-    Page<File> findAllByNameContainsAndTagsIn(String query, List<String> tags, Pageable pageable);
+    Page<File> findAllByNameContainsAndTagsIn(String name, Collection<String> tags, Pageable pageable);
 
-    Page<File> findAllByTagsIn(List<String> tags, Pageable pageable);
+    Page<File> findAllByTagsIn(Collection<String> tags, Pageable pageable);
 }

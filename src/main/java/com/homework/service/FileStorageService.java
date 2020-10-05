@@ -10,16 +10,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
-import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
-import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
-
 import org.springframework.stereotype.Service;
 
-import javax.print.Doc;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -91,7 +84,6 @@ public class FileStorageService {
     }
 
     private List<FileDto> findByTags(List<String> tags, Pageable pageable) {
-        String query = String.join(" ", tags);
         Page<File> files = repository.findAllByTagsIn(tags, pageable);
         return files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
     }
@@ -102,7 +94,6 @@ public class FileStorageService {
     }
 
     private List<FileDto> findByQueryAndTags(List<String> tags, String query, Pageable pageable) {
-        String tagsString = String.join(" ", tags);
         Page<File> files = repository.findAllByNameContainsAndTagsIn(query, tags, pageable);
         return files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
     }

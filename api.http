@@ -1,0 +1,16 @@
+POST http://localhost:8080/file
+Content-Type: application/json
+
+{
+  "name" : "FirstName.txt",
+  "size" : 123123
+}
+###
+
+GET http://localhost:8080/file?tags=document
+Content-Type: application/json
+###
+
+GET http://localhost:8080/file
+Content-Type: application/json
+###

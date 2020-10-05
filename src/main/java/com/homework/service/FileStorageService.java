@@ -11,6 +11,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,8 +52,10 @@ public class FileStorageService {
 
     public void deleteTags(String id, List<String> tags) throws NotFoundException {
         var file = repository.findById(id).orElseThrow(NotFoundException::new);
-        file.getTags().removeAll(tags);
-        repository.save(file);
+        if(file.getTags().containsAll(tags)) {
+            file.getTags().removeAll(tags);
+            repository.save(file);
+        }else throw new NotFoundException("One of the tags is not present on the file and body");
     }
 
     public void assignTags(String id, List<String> tags) throws NotFoundException {

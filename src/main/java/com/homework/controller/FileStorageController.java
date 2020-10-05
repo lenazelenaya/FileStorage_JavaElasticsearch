@@ -7,6 +7,8 @@ import com.homework.exceptions.NotFoundException;
 import com.homework.exceptions.NotPresentSizeOrNameException;
 import com.homework.service.FileStorageService;
 import com.homework.dto.FileCreateDto;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 import net.minidev.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,7 +28,10 @@ public class FileStorageController {
     }
 
     @PostMapping(produces = "application/json")
-    public ResponseEntity<String> upload(@RequestBody String json) throws JsonProcessingException {
+    @ApiOperation(value = "Upload file to dataStorage",
+            response = ResponseEntity.class)
+    public ResponseEntity<String> upload(@ApiParam(value = "Json with name and size values of the file", required = true)
+                                         @RequestBody String json) throws JsonProcessingException {
         JSONObject resp = new JSONObject();
         try {
             var dto = new ObjectMapper().readValue(json, FileCreateDto.class);
@@ -40,7 +45,12 @@ public class FileStorageController {
     }
 
     @DeleteMapping(value = "/{id}", produces = "application/json")
-    public ResponseEntity<String> deleteFile(@PathVariable String id) {
+    @ApiOperation(value = "Delete file from storage by id",
+            notes = "Provide id of the file to delete it",
+            response = ResponseEntity.class)
+    public ResponseEntity<String> deleteFile(
+            @ApiParam(value = "Id of the file to delete", required = true)
+            @PathVariable String id) {
 
         JSONObject resp = new JSONObject();
 
@@ -64,7 +74,12 @@ public class FileStorageController {
     @PostMapping(value = "/{id}/tags",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> assignTags(@PathVariable String id, @RequestBody List<String> tags) {
+    @ApiOperation(value = "Add list of tags to the file by id",
+            notes = "Provide an id and tags as a list (ex.[\"tag1\", \"tag2\"]) to add it to the file")
+    public ResponseEntity<String> assignTags(@ApiParam(value = "Id of the file to add tags to id", required = true)
+                                                 @PathVariable String id,
+                                             @ApiParam(value = "List of the tags to add to the file", required = true)
+                                             @RequestBody List<String> tags) {
 
         JSONObject response = new JSONObject();
 
@@ -76,7 +91,7 @@ public class FileStorageController {
 
             return new ResponseEntity<>(response.toJSONString(), HttpStatus.OK);
 
-        }catch(NotFoundException e){
+        } catch (NotFoundException e) {
 
             response.put("success", false);
             response.put("error", e.getMessage());
@@ -88,7 +103,11 @@ public class FileStorageController {
     @DeleteMapping(value = "/{id}/tags",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> deleteTags(@PathVariable String id, @RequestBody List<String> tags) {
+    @ApiOperation(value = "Delete tags from the file by id",
+            notes = "Provide an id and tags as a list (ex.[\"tag1\", \"tag2\"]) to delete it from the file")
+    public ResponseEntity<String> deleteTags(@PathVariable String id,
+                                             @ApiParam(value = "List of the tags to delete from the file", required = true)
+                                             @RequestBody List<String> tags) {
 
         JSONObject response = new JSONObject();
 
@@ -99,7 +118,7 @@ public class FileStorageController {
             response.put("success", true);
 
             return new ResponseEntity<>(response.toJSONString(), HttpStatus.OK);
-        }catch (NotFoundException e) {
+        } catch (NotFoundException e) {
 
             response.put("success", false);
             response.put("error", e.getMessage());
@@ -109,9 +128,15 @@ public class FileStorageController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> getAll(@RequestParam(value = "tags", required = false) List<String> tags,
-                                                      @RequestParam(value = "size", defaultValue = "10") Integer size,
-                                                      @RequestParam(value = "page", defaultValue = "0") Integer page,
+    @ApiOperation(value = "Get all files",
+            notes = "You can get all files by query or by tags. Also, you can provide pagination with size and page values")
+    public ResponseEntity<String> getAll(@ApiParam(value = "Tags to search files by them")
+                                             @RequestParam(value = "tags", required = false) List<String> tags,
+                                         @ApiParam(value = "Size of the page", defaultValue = "10")
+                                         @RequestParam(value = "size", defaultValue = "10") Integer size,
+                                         @ApiParam(value = "The 0-based parameter for paging", defaultValue = "0")
+                                         @RequestParam(value = "page", defaultValue = "0") Integer page,
+                                         @ApiParam(value = "Query to find files that contains it in the name")
                                          @RequestParam(value = "q", required = false) String query) {
 
         JSONObject response = new JSONObject();

@@ -121,8 +121,6 @@ public class FileStorageService {
     }
 
     private AllFilesResponseDto findByTags(List<String> tags, Pageable pageable) {
-
-//        Deprecated implementation
 //        QueryBuilder queryBuilder = new MatchQueryBuilder("tags", String.join(" ", tags)).operator(Operator.AND);
 //        repository.search(queryBuilder, pageable);
         

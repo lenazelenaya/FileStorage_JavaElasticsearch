@@ -16,5 +16,5 @@ public class AllFilesRequestDto {
 
     int page = 0;
 
-    String query;
+    String q;
 }

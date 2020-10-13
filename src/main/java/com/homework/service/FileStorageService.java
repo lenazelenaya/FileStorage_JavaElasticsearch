@@ -1,10 +1,7 @@
 package com.homework.service;
 
-import com.homework.dto.AllFilesDto;
-import com.homework.dto.IDDto;
+import com.homework.dto.*;
 import com.homework.exceptions.NotFoundException;
-import com.homework.dto.FileCreateDto;
-import com.homework.dto.FileDto;
 import com.homework.extensions.*;
 import com.homework.model.File;
 import com.homework.repository.FileStorageRepo;
@@ -79,7 +76,12 @@ public class FileStorageService {
         repository.save(file);
     }
 
-    public AllFilesDto getAll(List<String> tags, Integer size, Integer page, String query) {
+    public AllFilesResponseDto getAll(AllFilesRequestDto dto) {
+        var page = dto.getPage();
+        var size = dto.getSize();
+        var tags = dto.getTags();
+        var query = dto.getQuery();
+
         Pageable pageable = PageRequest.of(page, size);
         if (tags == null && query == null) {
             var list = repository.findAll(pageable)
@@ -87,17 +89,17 @@ public class FileStorageService {
                     .stream()
                     .map(FileDto::fromEntity)
                     .collect(Collectors.toList());
-            return new AllFilesDto((int) getCount(), list);
+            return new AllFilesResponseDto((int) getCount(), list);
         } else if(query == null) {
             var list = findByTags(tags, pageable);
-            return new AllFilesDto(list.size(), list);
+            return new AllFilesResponseDto(list.size(), list);
         }
         else if(tags == null){
             var list = findByQuery(query, pageable);
-            return new AllFilesDto(list.size(), list);
+            return new AllFilesResponseDto(list.size(), list);
         }else{
             var list = findByQueryAndTags(tags, query, pageable);
-            return new AllFilesDto(list.size(), list);
+            return new AllFilesResponseDto(list.size(), list);
         }
     }
 

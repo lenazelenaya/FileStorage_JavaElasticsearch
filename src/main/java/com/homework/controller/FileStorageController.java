@@ -1,5 +1,6 @@
 package com.homework.controller;
 
+import com.homework.dto.AllFilesRequestDto;
 import com.homework.dto.ErrorResponseDto;
 import com.homework.dto.SuccessResponseDto;
 import com.homework.exceptions.*;
@@ -66,9 +67,9 @@ public class FileStorageController {
     @ApiOperation(value = "Add list of tags to the file by id",
             notes = "Provide an id and tags as a list (ex.[\"tag1\", \"tag2\"]) to add it to the file")
     public ResponseEntity<?> assignTags(@ApiParam(value = "Id of the file to add tags to id", required = true)
-                                             @PathVariable String id,
-                                             @ApiParam(value = "List of the tags to add to the file", required = true)
-                                             @RequestBody List<String> tags) {
+                                        @PathVariable String id,
+                                        @ApiParam(value = "List of the tags to add to the file", required = true)
+                                        @RequestBody List<String> tags) {
         try {
 
             fileStorageService.assignTags(id, tags);
@@ -87,8 +88,8 @@ public class FileStorageController {
     @ApiOperation(value = "Delete tags from the file by id",
             notes = "Provide an id and tags as a list (ex.[\"tag1\", \"tag2\"]) to delete it from the file")
     public ResponseEntity<?> deleteTags(@PathVariable String id,
-                                             @ApiParam(value = "List of the tags to delete from the file", required = true)
-                                             @RequestBody List<String> tags) {
+                                        @ApiParam(value = "List of the tags to delete from the file", required = true)
+                                        @RequestBody List<String> tags) {
         try {
 
             fileStorageService.deleteTags(id, tags);
@@ -105,12 +106,8 @@ public class FileStorageController {
     @ApiOperation(value = "Get all files",
             notes = "You can get all files by query or by tags. Also, you can provide pagination with size and page values")
     public ResponseEntity<?> getAll(@ApiParam(value = "Tags to search files by them")
-                                         @RequestParam(value = "tags", required = false) List<String> tags,
-                                         @RequestParam(value = "size", defaultValue = "10") int size,
-                                         @RequestParam(value = "page", defaultValue = "0") int page,
-                                         @ApiParam(value = "Query to find files that contains it in the name")
-                                         @RequestParam(value = "q", required = false) String query) {
-        return new ResponseEntity<>(fileStorageService.getAll(tags, size, page, query), HttpStatus.OK);
+                                    AllFilesRequestDto dto) {
+        return new ResponseEntity<>(fileStorageService.getAll(dto), HttpStatus.OK);
     }
 
     private void getExceptionMessage(Errors errors) {

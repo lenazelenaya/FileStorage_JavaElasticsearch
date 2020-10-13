@@ -59,7 +59,11 @@ public class FileStorageService {
 
     public void assignTags(String id, List<String> tags) throws NotFoundException {
         var file = repository.findById(id).orElseThrow(NotFoundException::new);
-        file.getTags().addAll(tags);
+        var currentTags = file.getTags();
+        if(currentTags != null) {
+            currentTags.addAll(tags);
+            file.setTags(currentTags);
+        } else file.setTags(tags);
         repository.save(file);
     }
 

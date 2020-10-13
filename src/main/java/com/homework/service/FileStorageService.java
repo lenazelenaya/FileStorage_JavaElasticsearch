@@ -53,15 +53,17 @@ public class FileStorageService {
     }
 
     public void deleteTags(String id, List<String> tags) throws NotFoundException {
-        var file = repository.findById(id).orElseThrow(NotFoundException::new);
+        if(!repository.existsById(id)) throw new NotFoundException("File with such id is not exist");
+        var file = repository.findById(id).get();
         if(file.getTags().containsAll(tags)) {
             file.getTags().removeAll(tags);
             repository.save(file);
-        }else throw new NotFoundException("One of the tags is not present on the file and body");
+        }else throw new NotFoundException("Tag not found on file");
     }
 
     public void assignTags(String id, List<String> tags) throws NotFoundException {
-        var file = repository.findById(id).orElseThrow(NotFoundException::new);
+        if(!repository.existsById(id)) throw new NotFoundException("File with such id is not exist");
+        var file = repository.findById(id).get();
         var currentTags = file.getTags();
         if(currentTags != null) {
             currentTags.addAll(tags);
@@ -108,9 +110,7 @@ public class FileStorageService {
     }
 
     public long getCount() {
-        // repository.count();
-        var files = repository.findAll();
-        return StreamSupport.stream(files.spliterator(), false).count();
+        return repository.count();
     }
 
     private void addTag(List<String> tags, FileType type){

@@ -1,5 +1,7 @@
 package com.homework.service;
 
+import com.homework.dto.AllFilesDto;
+import com.homework.dto.IDDto;
 import com.homework.exceptions.NotFoundException;
 import com.homework.dto.FileCreateDto;
 import com.homework.dto.FileDto;
@@ -25,7 +27,7 @@ public class FileStorageService {
         this.repository = repository;
     }
 
-    public String upload(FileCreateDto dto) {
+    public IDDto upload(FileCreateDto dto) {
         List<String> tags = new ArrayList<>();
         if(dto.getTags() != null)
             tags.addAll(dto.getTags());
@@ -41,7 +43,7 @@ public class FileStorageService {
                 .size(dto.getSize())
                 .tags(tags)
                 .build();
-        return repository.save(newFile).getId();
+        return new IDDto(repository.save(newFile).getId());
     }
 
     public void deleteById(String id) throws NotFoundException {
@@ -68,20 +70,25 @@ public class FileStorageService {
         repository.save(file);
     }
 
-    public List<FileDto> getAll(List<String> tags, Integer size, Integer page, String query) {
+    public AllFilesDto getAll(List<String> tags, Integer size, Integer page, String query) {
         Pageable pageable = PageRequest.of(page, size);
         if (tags == null && query == null) {
-            return repository.findAll(pageable)
+            var list = repository.findAll(pageable)
                     .getContent()
                     .stream()
                     .map(FileDto::fromEntity)
                     .collect(Collectors.toList());
-        } else if(query == null)
-            return findByTags(tags, pageable);
+            return new AllFilesDto((int) getCount(), list);
+        } else if(query == null) {
+            var list = findByTags(tags, pageable);
+            return new AllFilesDto(list.size(), list);
+        }
         else if(tags == null){
-            return findByQuery(query, pageable);
+            var list = findByQuery(query, pageable);
+            return new AllFilesDto(list.size(), list);
         }else{
-            return findByQueryAndTags(tags, query, pageable);
+            var list = findByQueryAndTags(tags, query, pageable);
+            return new AllFilesDto(list.size(), list);
         }
     }
 
@@ -101,6 +108,7 @@ public class FileStorageService {
     }
 
     public long getCount() {
+        // repository.count();
         var files = repository.findAll();
         return StreamSupport.stream(files.spliterator(), false).count();
     }

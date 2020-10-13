@@ -11,7 +11,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -73,17 +72,12 @@ public class FileStorageService {
                     .map(FileDto::fromEntity)
                     .collect(Collectors.toList());
         } else if(query == null)
-            return this.findByTags(tags, pageable);
+            return findByTags(tags, pageable);
         else if(tags == null){
-            return this.findByQuery(query, pageable);
+            return findByQuery(query, pageable);
         }else{
-            return this.findByQueryAndTags(tags, query, pageable);
+            return findByQueryAndTags(tags, query, pageable);
         }
-    }
-
-    public long getCount() {
-        var files = repository.findAll();
-        return StreamSupport.stream(files.spliterator(), false).count();
     }
 
     private List<FileDto> findByTags(List<String> tags, Pageable pageable) {
@@ -99,6 +93,11 @@ public class FileStorageService {
     private List<FileDto> findByQueryAndTags(List<String> tags, String query, Pageable pageable) {
         Page<File> files = repository.findAllByNameContainsAndTagsIn(query, tags, pageable);
         return files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
+    }
+
+    public long getCount() {
+        var files = repository.findAll();
+        return StreamSupport.stream(files.spliterator(), false).count();
     }
 
     private void addTag(List<String> tags, FileType type){

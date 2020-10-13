@@ -8,6 +8,7 @@ import com.homework.dto.FileDto;
 import com.homework.extensions.*;
 import com.homework.model.File;
 import com.homework.repository.FileStorageRepo;
+import org.apache.tika.Tika;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,10 +32,17 @@ public class FileStorageService {
         if(dto.getTags() != null)
             tags.addAll(dto.getTags());
 
-        FileType type = getFileType(dto.getName());
+        Optional<String> extension = getExtensionByStringHandling(dto.getName());
+        if (extension.isPresent()) {
+            FileType type = getFileType(extension.get());
+            if(type != null) {
+                tags.add(type.getType());
+            }
+        }
 
-        if(type != null)
-            addTag(tags, type);
+        // This variant could be use if we need MIME type to add to tags
+
+        // addTagForMIME(tags, dto.getName());
 
         var newFile = File.builder()
                 .id(UUID.randomUUID().toString())
@@ -112,20 +120,7 @@ public class FileStorageService {
         return repository.count();
     }
 
-    private void addTag(List<String> tags, FileType type){
-        if(type instanceof AudioType)
-            tags.add("audio");
-        else if(type instanceof DocType)
-            tags.add("document");
-        else if(type instanceof VideoType)
-            tags.add("video");
-        else if(type instanceof ImageType)
-            tags.add("image");
-    }
-
-    private FileType getFileType(String fileName){
-        String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
-
+    private FileType getFileType(String extension){
         if (Arrays.stream(AudioType.values())
                 .anyMatch(type -> type.toString().equals(extension.toUpperCase())))
             return AudioType.valueOf(extension.toUpperCase());
@@ -144,5 +139,23 @@ public class FileStorageService {
 
         // If there is no extension in enums, there would not be any file type
         return null;
+    }
+
+    private Optional<String> getExtensionByStringHandling(String fileName) {
+        return Optional.ofNullable(fileName)
+                .filter(f -> f.contains("."))
+                .map(f -> f.substring(fileName.lastIndexOf(".") + 1));
+    }
+
+
+    // For MIME types as application/zip
+    private void addTagForMIME(List<String> tags, String name) {
+        Tika tika = new Tika();
+        String mimeType = tika.detect(name);
+
+        if(mimeType != null){
+            String newTag = mimeType.substring(0, mimeType.indexOf('/'));
+            tags.add(newTag);
+        }
     }
 }

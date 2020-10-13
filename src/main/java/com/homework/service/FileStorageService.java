@@ -25,15 +25,15 @@ public class FileStorageService {
     }
 
     public IDDto upload(FileCreateDto dto) {
-        List<String> tags = new ArrayList<>();
-        if(dto.getTags() != null)
-            tags.addAll(dto.getTags());
+        List<String> tagsList = new ArrayList<>();
+        if (dto.getTags() != null)
+            tagsList.addAll(dto.getTags());
 
         Optional<String> extension = getExtensionByStringHandling(dto.getName());
         if (extension.isPresent()) {
             FileType type = getFileType(extension.get());
-            if(type != null) {
-                tags.add(type.getType());
+            if (type != null) {
+                tagsList.add(type.getType());
             }
         }
 
@@ -45,34 +45,49 @@ public class FileStorageService {
                 .id(UUID.randomUUID().toString())
                 .name(dto.getName())
                 .size(dto.getSize())
-                .tags(tags)
+                .tags(String.join(" ", tagsList))
                 .build();
         return new IDDto(repository.save(newFile).getId());
     }
 
     public void deleteById(String id) throws NotFoundException {
-        if(repository.existsById(id))
+        if (repository.existsById(id))
             repository.deleteById(id);
         else throw new NotFoundException("There is no file with such id");
     }
 
     public void deleteTags(String id, List<String> tags) throws NotFoundException {
-        if(!repository.existsById(id)) throw new NotFoundException("File with such id is not exist");
+        if (!repository.existsById(id)) throw new NotFoundException("File with such id is not exist");
         var file = repository.findById(id).get();
-        if(file.getTags().containsAll(tags)) {
-            file.getTags().removeAll(tags);
+        var currentTags = file.getTags();
+
+        if (currentTags == null || currentTags.equals("")) throw new NotFoundException("Tag not found on file");
+
+        var currentTagsList = new ArrayList<>(Arrays.asList(currentTags.split(" ")));
+        
+        // Check if currentTags contains all tags from list to delete
+        if (currentTagsList.containsAll(tags)) {
+            currentTagsList.removeAll(tags);
+            file.setTags(String.join(" ", currentTagsList));
             repository.save(file);
-        }else throw new NotFoundException("Tag not found on file");
+        } else throw new NotFoundException("Tag not found on file");
     }
 
     public void assignTags(String id, List<String> tags) throws NotFoundException {
-        if(!repository.existsById(id)) throw new NotFoundException("File with such id is not exist");
+        if (!repository.existsById(id)) throw new NotFoundException("File with such id is not exist");
         var file = repository.findById(id).get();
+        
         var currentTags = file.getTags();
-        if(currentTags != null) {
-            currentTags.addAll(tags);
-            file.setTags(currentTags);
-        } else file.setTags(tags);
+        
+        if (currentTags != null && !currentTags.equals("")) {
+            
+            var currentTagsSet = new HashSet<>(Arrays.asList(currentTags.split(" ")));
+            
+            currentTagsSet.addAll(tags);
+            
+            file.setTags(String.join(" ", currentTagsSet));
+            
+        } else file.setTags(String.join(" ", tags));
         repository.save(file);
     }
 
@@ -80,7 +95,7 @@ public class FileStorageService {
         var page = dto.getPage();
         var size = dto.getSize();
         var tags = dto.getTags();
-        var query = dto.getQuery();
+        var query = dto.getQ();
 
         Pageable pageable = PageRequest.of(page, size);
         if (tags == null && query == null) {
@@ -89,40 +104,46 @@ public class FileStorageService {
                     .stream()
                     .map(FileDto::fromEntity)
                     .collect(Collectors.toList());
-            return new AllFilesResponseDto((int) getCount(), list);
-        } else if(query == null) {
-            var list = findByTags(tags, pageable);
-            return new AllFilesResponseDto(list.size(), list);
-        }
-        else if(tags == null){
-            var list = findByQuery(query, pageable);
-            return new AllFilesResponseDto(list.size(), list);
-        }else{
-            var list = findByQueryAndTags(tags, query, pageable);
-            return new AllFilesResponseDto(list.size(), list);
+            return new AllFilesResponseDto((int) repository.count(), list);
+        } else if (query == null) {
+            
+            return findByTags(tags, pageable);
+            
+        } else if (tags == null) {
+
+            return findByQuery(query, pageable);
+
+        } else {
+
+            return findByQueryAndTags(tags, query, pageable);
+
         }
     }
 
-    private List<FileDto> findByTags(List<String> tags, Pageable pageable) {
+    private AllFilesResponseDto findByTags(List<String> tags, Pageable pageable) {
+
+//        Deprecated implementation
+//        QueryBuilder queryBuilder = new MatchQueryBuilder("tags", String.join(" ", tags)).operator(Operator.AND);
+//        repository.search(queryBuilder, pageable);
+        
         Page<File> files = repository.findAllByTagsIn(tags, pageable);
-        return files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
+        var list = files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
+        return new AllFilesResponseDto(repository.countByTagsIn(tags), list);
     }
 
-    private List<FileDto> findByQuery(String query, Pageable pageable) {
+    private AllFilesResponseDto findByQuery(String query, Pageable pageable) {
         Page<File> files = repository.findAllByNameContains(query, pageable);
-        return files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
+        var list = files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
+        return new AllFilesResponseDto(repository.countByNameContaining(query), list);
     }
 
-    private List<FileDto> findByQueryAndTags(List<String> tags, String query, Pageable pageable) {
+    private AllFilesResponseDto findByQueryAndTags(List<String> tags, String query, Pageable pageable) {
         Page<File> files = repository.findAllByNameContainsAndTagsIn(query, tags, pageable);
-        return files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
+        var list = files.toList().stream().map(FileDto::fromEntity).collect(Collectors.toList());
+        return new AllFilesResponseDto(list.size(), list);
     }
 
-    public long getCount() {
-        return repository.count();
-    }
-
-    private FileType getFileType(String extension){
+    private FileType getFileType(String extension) {
         if (Arrays.stream(AudioType.values())
                 .anyMatch(type -> type.toString().equals(extension.toUpperCase())))
             return AudioType.valueOf(extension.toUpperCase());
@@ -155,7 +176,7 @@ public class FileStorageService {
         Tika tika = new Tika();
         String mimeType = tika.detect(name);
 
-        if(mimeType != null){
+        if (mimeType != null) {
             String newTag = mimeType.substring(0, mimeType.indexOf('/'));
             tags.add(newTag);
         }

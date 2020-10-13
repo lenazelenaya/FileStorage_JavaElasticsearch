@@ -16,5 +16,5 @@ public class File {
     private String id;
     private String name;
     private Integer size;
-    private List<String> tags;
+    private String tags;
 }

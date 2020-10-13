@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Collection;
 import java.util.List;
 
-
 @Repository
 public interface FileStorageRepo extends ElasticsearchRepository<File, String> {
     Page<File> findAllByNameContains(String query, Pageable pageable);

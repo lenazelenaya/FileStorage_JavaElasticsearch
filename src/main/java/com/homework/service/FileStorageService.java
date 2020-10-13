@@ -45,8 +45,9 @@ public class FileStorageService {
     }
 
     public void deleteById(String id) throws NotFoundException {
-        repository.findById(id).orElseThrow(NotFoundException::new);
-        repository.deleteById(id);
+        if(repository.existsById(id))
+            repository.deleteById(id);
+        else throw new NotFoundException("There is no file with such id");
     }
 
     public void deleteTags(String id, List<String> tags) throws NotFoundException {

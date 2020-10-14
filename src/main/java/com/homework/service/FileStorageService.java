@@ -20,7 +20,7 @@ public class FileStorageService {
 
     private final FileStorageRepo repository;
 
-    FileStorageService(FileStorageRepo repository) {
+    public FileStorageService(FileStorageRepo repository) {
         this.repository = repository;
     }
 

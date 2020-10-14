@@ -6,22 +6,38 @@ import com.homework.extensions.*;
 import com.homework.model.File;
 import com.homework.repository.FileStorageRepo;
 import org.apache.tika.Tika;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.index.query.TermQueryBuilder;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.UpdateByQueryRequest;
+import org.elasticsearch.index.reindex.UpdateByQueryRequestBuilder;
+import org.elasticsearch.script.Script;
+import org.elasticsearch.script.ScriptType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.Collections.singletonMap;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 @Service
 public class FileStorageService {
 
     private final FileStorageRepo repository;
 
-    public FileStorageService(FileStorageRepo repository) {
+    private final RestHighLevelClient client;
+
+    public FileStorageService(FileStorageRepo repository, RestHighLevelClient client) {
         this.repository = repository;
+        this.client = client;
     }
 
     public IDDto upload(FileCreateDto dto) {
@@ -58,13 +74,32 @@ public class FileStorageService {
 
     public void deleteTags(String id, List<String> tags) throws NotFoundException {
         if (!repository.existsById(id)) throw new NotFoundException("File with such id is not exist");
+
+//        Possible implementation with update API
+
+//        UpdateByQueryRequest request = new UpdateByQueryRequest("files");
+//        Map<String, Object> parameters = singletonMap("tags", tags);
+//
+//
+//        String expr = "if(params.tags.stream()" +
+//                ".containsAll( Arrays.asList(doc['tags'].split(\" \") ) { " +
+//                    "Arrays.asList(doc['tags'].split(\" \").removeAll(params.tags) " +
+//                "}";
+//
+//        request.setScript(new Script(ScriptType.INLINE,
+//                "painless",
+//                expr,
+//                parameters));
+//        request.setQuery(new TermQueryBuilder("id", id));
+//        BulkByScrollResponse response = client.updateByQuery(request, RequestOptions.DEFAULT);
+
         var file = repository.findById(id).get();
         var currentTags = file.getTags();
 
         if (currentTags == null || currentTags.equals("")) throw new NotFoundException("Tag not found on file");
 
         var currentTagsList = new ArrayList<>(Arrays.asList(currentTags.split(" ")));
-        
+
         // Check if currentTags contains all tags from list to delete
         if (currentTagsList.containsAll(tags)) {
             currentTagsList.removeAll(tags);

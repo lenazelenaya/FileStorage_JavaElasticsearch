@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = ElasticsearchConfig.class)
 @WebMvcTest(FileStorageController.class)
 @Import(FileStorageService.class)
-public class HomeWorkControllerWithServiceIT {
+public class FileStorageControllerWithServiceIT {
     @Autowired
     private ObjectMapper objectMapper;
 

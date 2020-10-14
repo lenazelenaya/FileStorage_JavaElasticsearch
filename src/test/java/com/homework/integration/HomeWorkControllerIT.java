@@ -4,10 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.homework.config.ElasticsearchConfig;
 import com.homework.controller.FileStorageController;
 import com.homework.dto.*;
-import com.homework.exceptions.NotFoundException;
 import com.homework.service.FileStorageService;
-import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -43,7 +42,7 @@ public class HomeWorkControllerIT {
         var dto = new FileCreateDto(testName, testPositiveSize, null);
         var testId = UUID.randomUUID().toString();
 
-        when(fileStorageService.upload(dto)).thenReturn(new IDDto(testId));
+        when(fileStorageService.upload(ArgumentMatchers.any(FileCreateDto.class))).thenReturn(new IDDto(testId));
 
         this.mockMvc
                 .perform(post("/file")
@@ -96,13 +95,12 @@ public class HomeWorkControllerIT {
     @Test
     void whenGetAll_thenReturnValidResponse() throws Exception{
         var testTotal = 1;
-        var testObject = new AllFilesRequestDto(null, 10, 0, null);
         var testID = UUID.randomUUID().toString();
         var testName = "fileName";
         var testSize = 123;
         var testFile = new FileDto(testID, testName, testSize, null);
 
-        when(fileStorageService.getAll(testObject))
+        when(fileStorageService.getAll(ArgumentMatchers.any(AllFilesRequestDto.class)))
                 .thenReturn(new AllFilesResponseDto(testTotal, Collections.singletonList(testFile)));
 
         this.mockMvc
